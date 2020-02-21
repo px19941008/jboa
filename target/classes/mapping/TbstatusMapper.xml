@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.accp.jboa.dao.TbstatusMapper" >
+
+  <select id="queryAll" resultType="com.accp.jboa.pojo.Tbstatus">
+  	select * from Tbstatus
+  </select>
+<!--  月统计表 -->
+  <select id="queryStatisticsByMonth" resultType="com.accp.jboa.pojo.Tbcount">
+         SELECT `year`,`month`,departmentId,departmentName,SUM(money) money FROM tbcount
+		<where>
+			<if test="year != null">
+				and year = #{year}
+			</if>
+			<if test="startMonth != null">
+				and month >= #{startMonth}
+			</if>
+			<if test="endMonth !=null">
+				and month &lt;= #{endMonth}
+			</if>
+		     <if test="emp.positionid==1">
+				and departmentId = #{emp.departmentId}
+			</if>  
+		</where>
+		<if test="emp.positionId == 1">
+			GROUP BY departmentId,MONTH
+		</if>
+		<if test="emp.positionId != 1">
+			GROUP BY MONTH
+		</if>
+	 
+	</select>
+<!-- 	年统计表 -->
+	<select id="queryStatisticsByYear" resultType="com.accp.jboa.pojo.Tbcount">
+		SELECT`year`,SUM(money) money FROM tbcount
+		<where>
+			<if test="startYear != null">
+				and year >= #{startYear}
+			</if>
+			<if test="endYear !=null">
+				and year &lt;= #{endYear}
+			</if>
+			<if test="emp.positionid == 1">
+				and departmentId = #{emp.departmentId}
+			</if>
+		</where>
+		GROUP BY YEAR
+	</select>
+	<insert id="saveStatistics">
+	INSERT INTO tbcount (money,`year`,`month`,departmentId,departmentName,employeeId,employeeName)
+		SELECT totalCount,YEAR(createTime) `year`, MONTH(createTime) `month`,
+		r.departmentId,departmentName,createMan employeeId,employeeName
+		FROM tbreimburse r INNER JOIN department d ON d.departmentId = r.departmentId
+		INNER JOIN employee emp ON emp.employeeId = r.createMan WHERE statusId = 5
+		AND createTime >= #{currTime}
+	</insert>
+	
+	
+</mapper>
